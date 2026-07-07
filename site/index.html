@@ -332,9 +332,8 @@ function draw(animate) {
            slowed at most ~55%, so nothing ever flows backward. */
         targetMul = p.x < gx ? 1 + 0.9 * f : 1 - 0.55 * f;
         p.vy += (-dy / d) * f * 0.07 * DPR;
-        /* Depth converges toward the hover plane: near pixels recede a
-           little, far ones come forward. */
-        p.z += (0.55 - p.z) * f * 0.03;
+        /* Hover draws pixels closer: depth climbs, so they grow and hurry. */
+        p.z += (1 - p.z) * f * 0.04;
       }
       p.mul += (targetMul - p.mul) * 0.04;
       p.vy = Math.max(-maxPull, Math.min(maxPull, p.vy * 0.95));

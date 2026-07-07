@@ -258,8 +258,7 @@ function spawn(x) {
     vy: 0,
     mul: 1, /* smoothed hover speed multiplier — the inertia */
     sx: 0, sy: 0, /* scatter velocity from clicks */
-    tint: BLUE, /* status color from the last click, fading back to blue */
-    tintT: 0,
+    tint: BLUE, /* status color from the last click — permanent once set */
   };
 }
 
@@ -297,7 +296,6 @@ addEventListener("pointerdown", (e) => {
     p.sy += (dy / d) * f * 22 * DPR;
     p.zv += (p.z >= 0.5 ? 1 : -1) * f * 0.07;
     p.tint = color;
-    p.tintT = 1;
   }
 });
 
@@ -351,17 +349,7 @@ function draw(animate) {
       if (p.y < -40 * DPR) p.y = H + 20 * DPR;
       if (p.y > H + 40 * DPR) p.y = -20 * DPR;
     }
-    let rgb = BLUE;
-    if (p.tintT > 0.02) {
-      if (animate) p.tintT *= 0.985;
-      const t = p.tintT;
-      rgb = [
-        (BLUE[0] + (p.tint[0] - BLUE[0]) * t) | 0,
-        (BLUE[1] + (p.tint[1] - BLUE[1]) * t) | 0,
-        (BLUE[2] + (p.tint[2] - BLUE[2]) * t) | 0,
-      ];
-    }
-    ctx.fillStyle = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${Math.min(alphaOf(p) + pulse * 0.3, 1)})`;
+    ctx.fillStyle = `rgba(${p.tint[0]}, ${p.tint[1]}, ${p.tint[2]}, ${Math.min(alphaOf(p) + pulse * 0.3, 1)})`;
     const s = sizeOf(p);
     ctx.fillRect(Math.round(p.x), Math.round(y), s, s);
   }

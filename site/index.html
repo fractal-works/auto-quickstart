@@ -291,9 +291,12 @@ addEventListener("pointerdown", (e) => {
     const d2 = dx * dx + dy * dy;
     if (d2 > R * R) continue;
     const d = Math.sqrt(d2) || 1;
+    /* Upstream pixels take the blast against their flow, so they get
+       knocked back harder than the ones already moving away downstream. */
+    const kick = p.x < cx ? 32 : 16;
     const f = (1 - d / R) * (0.5 + p.z * 0.5);
-    p.sx += (dx / d) * f * 22 * DPR;
-    p.sy += (dy / d) * f * 22 * DPR;
+    p.sx += (dx / d) * f * kick * DPR;
+    p.sy += (dy / d) * f * kick * DPR;
     p.zv += (p.z >= 0.5 ? 1 : -1) * f * 0.07;
     p.tint = color;
   }

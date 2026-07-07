@@ -122,7 +122,7 @@
   .inline-wordmark { font-family: var(--font-pixel); font-size: 1.05em; }
   .hero-panel {
     margin-top: clamp(28px, 5vh, 48px);
-    padding: clamp(28px, 4vw, 44px) clamp(20px, 5vw, 56px);
+    padding: clamp(22px, 3vw, 34px) clamp(16px, 4vw, 44px);
     background: rgba(38, 35, 35, 0.05);
     border: 1px solid var(--hairline);
     border-radius: var(--radius-card);
@@ -139,7 +139,7 @@
   }
   .cards {
     display: grid; grid-template-columns: repeat(4, 1fr);
-    gap: 14px; margin-top: clamp(28px, 5vh, 56px); text-align: left;
+    gap: 14px; margin-top: clamp(22px, 4vh, 44px); text-align: left;
   }
   /* Only 4 / 2×2 / 1-per-row layouts — never a 3+1 orphan. */
   @media (max-width: 900px) { .cards { grid-template-columns: repeat(2, 1fr); } }

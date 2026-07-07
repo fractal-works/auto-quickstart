@@ -251,7 +251,6 @@ function spawn(x) {
   return {
     x,
     y: Math.random() * H,
-    z0: z, /* home depth, relaxed back to after hover/click influence */
     z,
     zv: 0, /* depth velocity from clicks */
     jitter: 0.85 + Math.random() * 0.3,
@@ -340,7 +339,9 @@ function draw(animate) {
       }
       p.mul += (targetMul - p.mul) * 0.04;
       p.vy = Math.max(-maxPull, Math.min(maxPull, p.vy * 0.95));
-      p.z += p.zv + (p.z0 - p.z) * 0.01;
+      /* Depth changes stick: pixels coast at whatever depth hover/clicks
+         left them at, until they respawn off the right edge. */
+      p.z += p.zv;
       p.zv *= 0.92;
       p.z = Math.max(0.02, Math.min(1, p.z));
       p.x += speedOf(p) * p.mul * (1 + pulse * 2) + p.sx;

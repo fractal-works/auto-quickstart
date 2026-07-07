@@ -84,6 +84,7 @@
     max-width: min(560px, calc(100vw - 28px));
   }
   .gate form.unlocked { border-color: var(--info-border); box-shadow: 0 1px 2px var(--shadow-soft), 0 0 0 3px var(--info-surface); }
+  .gate form:focus-within { border-color: var(--ds-blue-700); }
   .gate form.error { animation: shake 0.4s var(--ease-out-strong); border-color: var(--danger-border); }
   .gate input {
     background: transparent; border: 0; outline: 0; color: var(--text);
@@ -98,7 +99,7 @@
   }
   .gate button:hover { background: var(--ink-hover); }
   .gate button:disabled { opacity: 0.5; cursor: default; }
-  .gate input:focus-visible, .gate button:focus-visible { outline: 2px solid var(--ds-blue-700); outline-offset: 1px; }
+  .gate button:focus-visible { outline: 2px solid var(--ds-blue-700); outline-offset: 1px; }
   .gate .status { font: 500 11px/1.5 var(--font-mono); color: var(--text-subtle); padding-right: 6px; white-space: nowrap; }
   .gate .status.ok { color: var(--success); }
   .gate .status a { color: var(--info); text-decoration: underline; text-underline-offset: 2px; }
@@ -106,7 +107,8 @@
 
   main {
     position: relative; z-index: 1;
-    max-width: 880px; margin: 0 auto; padding: 20vh 24px 10vh;
+    max-width: 880px; margin: 0 auto;
+    padding: clamp(64px, 10vh, 150px) 24px clamp(24px, 4vh, 64px);
     text-align: center;
   }
   .lockup {
@@ -116,7 +118,7 @@
   .lockup svg { height: clamp(56px, 8vw, 82px); width: auto; display: block; }
   .wordmark { font: 500 clamp(64px, 9.5vw, 96px)/1 var(--font-pixel); color: var(--text); }
   h1 {
-    margin: 48px 0 20px; font-size: clamp(40px, 7.5vw, 76px); line-height: 1.05;
+    margin: clamp(28px, 5vh, 48px) 0 20px; font-size: clamp(40px, 7.5vw, 76px); line-height: 1.05;
     letter-spacing: -0.02em; font-weight: 600; color: var(--text);
     opacity: 0; animation: rise 1s 0.4s var(--ease-out-strong) forwards;
   }
@@ -126,7 +128,7 @@
   }
   .cards {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-    gap: 14px; margin-top: 9vh; text-align: left;
+    gap: 14px; margin-top: clamp(36px, 7vh, 80px); text-align: left;
   }
   .card {
     background: var(--bg-card); border: 1px solid var(--border-subtle);
@@ -148,7 +150,7 @@
   .card .dot { width: 8px; height: 8px; border-radius: 99px; flex: none; }
 
   footer {
-    position: relative; z-index: 1; text-align: center; padding: 0 24px 56px;
+    position: relative; z-index: 1; text-align: center; padding: 0 24px 40px;
   }
   footer p { font: 500 11px/1.6 var(--font-mono); color: var(--label-muted); }
   footer a {
@@ -205,29 +207,34 @@
 <script>
 /* ---- pixel river ---------------------------------------------------------
    The brand mark's dithered-pixel language, in motion: a river of brand-blue
-   pixel particles flowing left to right. The stream widens around the
-   pointer (parting like water around a stone) and scatters on click. */
+   pixel particles flowing left to right at three felt depths — near ones
+   larger and faster, far ones smaller and slower. The pointer gently bends
+   the flow: pixels converge toward it with inertia (upstream ones speed up,
+   downstream ones ease off, none reverse), and clicks scatter them. */
 const canvas = document.getElementById("field");
 const ctx = canvas.getContext("2d");
 const DPR = Math.min(window.devicePixelRatio || 1, 2);
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const BLUE = "13, 159, 244"; /* --ds-blue-700 */
-const Q = 4; /* draw positions quantize to this grid, keeping the dither feel */
 const mouse = { x: -1e4, y: -1e4 };
 let W, H, particles;
 let pulse = 0; /* set to 1 on successful handoff; decays */
 
 function spawn(x) {
+  const z = Math.random(); /* depth: 0 = far (small, slow), 1 = near (large, fast) */
   return {
     x,
-    baseY: Math.random() * H,
-    vx: (0.5 + Math.random() * 1.1) * DPR,
+    y: Math.random() * H,
+    z,
+    vx: (0.35 + z * 1.6) * DPR,
+    vy: 0,
+    mul: 1, /* smoothed hover speed multiplier — the inertia */
     sx: 0, sy: 0, /* scatter velocity from clicks */
-    amp: (6 + Math.random() * 22) * DPR,
+    amp: (3 + Math.random() * 9) * DPR,
     phase: Math.random() * Math.PI * 2,
     wave: 0.0015 + Math.random() * 0.0035,
-    size: (1.8 + Math.random() * 1.8) * DPR,
-    alpha: 0.10 + Math.random() * 0.28,
+    size: (1.6 + z * 4.2) * DPR,
+    alpha: 0.35 + z * 0.65,
   };
 }
 
@@ -236,7 +243,7 @@ function resize() {
   H = canvas.height = innerHeight * DPR;
   canvas.style.width = innerWidth + "px";
   canvas.style.height = innerHeight + "px";
-  const n = Math.min(900, Math.floor((innerWidth * innerHeight) / 2800));
+  const n = Math.min(700, Math.floor((innerWidth * innerHeight) / 3600));
   particles = Array.from({ length: n }, () => spawn(Math.random() * W));
   if (REDUCED) draw(false);
 }
@@ -247,48 +254,51 @@ addEventListener("pointerdown", (e) => {
   const cx = e.clientX * DPR, cy = e.clientY * DPR;
   const R = 220 * DPR;
   for (const p of particles) {
-    const y = riverY(p);
-    const dx = p.x - cx, dy = y - cy;
+    const dx = p.x - cx, dy = riverY(p) - cy;
     const d2 = dx * dx + dy * dy;
     if (d2 > R * R) continue;
     const d = Math.sqrt(d2) || 1;
-    const f = 1 - d / R;
-    p.sx += (dx / d) * f * 16 * DPR;
-    p.sy += (dy / d) * f * 16 * DPR;
+    const f = (1 - d / R) * (0.5 + p.z * 0.5);
+    p.sx += (dx / d) * f * 14 * DPR;
+    p.sy += (dy / d) * f * 14 * DPR;
   }
 });
 
 function riverY(p) {
-  return p.baseY + Math.sin(p.x * p.wave + p.phase) * p.amp;
+  return p.y + Math.sin(p.x * p.wave + p.phase) * p.amp;
 }
 
 function draw(animate) {
   ctx.clearRect(0, 0, W, H);
-  const q = Q * DPR;
-  const R = 240 * DPR;
+  const R = 280 * DPR;
+  const maxPull = 1.5 * DPR;
   for (const p of particles) {
+    const y = riverY(p);
     if (animate) {
-      p.x += p.vx * (1 + pulse * 2) + p.sx;
-      p.baseY += p.sy;
+      /* Hover: converge toward the pointer, gradually and with inertia. */
+      let targetMul = 1;
+      const dx = p.x - mouse.x, dy = y - mouse.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < R * R) {
+        const d = Math.sqrt(d2) || 1;
+        const f = (1 - d / R) * (0.4 + p.z * 0.6);
+        /* Upstream pixels hurry toward the pointer, downstream ones linger —
+           slowed at most ~55%, so nothing ever flows backward. */
+        targetMul = p.x < mouse.x ? 1 + 0.9 * f : 1 - 0.55 * f;
+        p.vy += (-dy / d) * f * 0.07 * DPR;
+      }
+      p.mul += (targetMul - p.mul) * 0.04;
+      p.vy = Math.max(-maxPull, Math.min(maxPull, p.vy * 0.95));
+      p.x += p.vx * p.mul * (1 + pulse * 2) + p.sx;
+      p.y += p.vy + p.sy;
       p.sx *= 0.9;
       p.sy *= 0.9;
       if (p.x > W + 24 * DPR) Object.assign(p, spawn(-24 * DPR));
-      if (p.baseY < -40 * DPR) p.baseY = H + 20 * DPR;
-      if (p.baseY > H + 40 * DPR) p.baseY = -20 * DPR;
+      if (p.y < -40 * DPR) p.y = H + 20 * DPR;
+      if (p.y > H + 40 * DPR) p.y = -20 * DPR;
     }
-    let y = riverY(p);
-    let alpha = p.alpha;
-    /* The stream widens around the pointer: deflect away, brighten. */
-    const dx = p.x - mouse.x, dy = y - mouse.y;
-    const d2 = dx * dx + dy * dy;
-    if (d2 < R * R) {
-      const d = Math.sqrt(d2) || 1;
-      const f = 1 - d / R;
-      y += (dy / d) * f * f * 110 * DPR;
-      alpha += f * 0.4;
-    }
-    ctx.fillStyle = `rgba(${BLUE}, ${Math.min(alpha + pulse * 0.3, 0.9)})`;
-    ctx.fillRect(Math.round(p.x / q) * q, Math.round(y / q) * q, p.size, p.size);
+    ctx.fillStyle = `rgba(${BLUE}, ${Math.min(p.alpha + pulse * 0.3, 1)})`;
+    ctx.fillRect(Math.round(p.x), Math.round(y), p.size, p.size);
   }
 }
 

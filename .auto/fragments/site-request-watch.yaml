@@ -1,0 +1,31 @@
+# The site-request deliver trigger — not imported by default: the onboarding
+# agent enables it alongside site-handoff-trigger.yaml when it wires the site
+# request bar. Both fragments declare endpoint: site-requests with the same
+# bearer auth, so the apply binds them to the same reservation. The
+# site-request event fans out to both: handoff spawns on it (see
+# site-handoff-trigger.yaml), and this trigger delivers a notification to all
+# live onboarding sessions so the onboarding agent can narrate the progress.
+#
+# The site posts `{ "event": "site.request", "request": ..., "page": ... }`
+# with the passphrase as a bearer token; it arrives as `webhook.site.request`.
+triggers:
+  - name: site-request-watch
+    event: webhook.site.request
+    endpoint: site-requests
+    auth:
+      kind: bearer_token
+      secretRef: site-request-password
+    message: |
+      A visitor to this project's published site asked for something new:
+
+      "{{ request }}"
+
+      (submitted from {{ page }})
+
+      The handoff agent has already been spawned to implement this request.
+      You are being notified so you can narrate the progress to the user.
+    routing:
+      kind: deliver
+      routeBy:
+        kind: allLiveSessions
+      onUnmatched: drop

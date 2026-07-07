@@ -2,4 +2,5 @@ name: handoff
 imports:
   - "@auto/handoff@latest/agents/handoff.yaml"
   # The onboarding agent adds ../fragments/site-handoff-trigger.yaml here
-  # when it wires the site request bar.
+  # and ../fragments/site-request-watch.yaml to .auto/agents/onboarding.yaml
+  # when it wires the site request bar (both in the same wiring PR).

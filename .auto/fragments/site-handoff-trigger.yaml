@@ -22,5 +22,11 @@ triggers:
       Treat this as a feature request for the site in this repo. Plan the
       change, implement it on a branch, and open a PR — the publish workflow
       deploys it when the PR merges.
+
+      When you start work, report back to the onboarding agent with
+      auto_sessions_message (agent: onboarding) so it can narrate your
+      progress to the user. When your PR opens, report again with the PR
+      number and URL. Tolerate failure silently if the onboarding session is
+      archived — do not block on the report-back.
     routing:
       kind: spawn

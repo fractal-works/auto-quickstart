@@ -278,6 +278,11 @@ function resize() {
 }
 addEventListener("resize", resize);
 addEventListener("pointermove", (e) => { mouse.x = e.clientX * DPR; mouse.y = e.clientY * DPR; });
+/* Park the pointer offscreen when it leaves the page (or the tab blurs) so
+   the hover influence doesn't stick at the exit point. */
+const parkMouse = () => { mouse.x = -1e4; mouse.y = -1e4; };
+document.documentElement.addEventListener("mouseleave", parkMouse);
+addEventListener("blur", parkMouse);
 addEventListener("pointerdown", (e) => {
   if (REDUCED) return;
   /* Clicks hit the exact spot: a harder radial shove, and a depth kick —

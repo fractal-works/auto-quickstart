@@ -238,7 +238,10 @@ const canvas = document.getElementById("field");
 const ctx = canvas.getContext("2d");
 const DPR = Math.min(window.devicePixelRatio || 1, 2);
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const BLUE = "13, 159, 244"; /* --ds-blue-700 */
+const BLUE = [13, 159, 244]; /* --ds-blue-700 */
+/* Click flash colors — the status vocabulary: running green, stopped red,
+   awaiting yellow (--success / --danger / --warning). */
+const STATUS_COLORS = [[47, 158, 84], [180, 35, 24], [176, 122, 20]];
 const mouse = { x: -1e4, y: -1e4 };
 let W, H, particles;
 let pulse = 0; /* set to 1 on successful handoff; decays */
@@ -258,6 +261,8 @@ function spawn(x) {
     amp: (3 + Math.random() * 9) * DPR,
     phase: Math.random() * Math.PI * 2,
     wave: 0.0015 + Math.random() * 0.0035,
+    tint: BLUE, /* status color from the last click, fading back to blue */
+    tintT: 0,
   };
 }
 
@@ -284,6 +289,7 @@ addEventListener("pointerdown", (e) => {
      near pixels jump closer (bigger), far ones drop further away (smaller). */
   const cx = e.clientX * DPR, cy = e.clientY * DPR;
   const R = 220 * DPR;
+  const color = STATUS_COLORS[(Math.random() * STATUS_COLORS.length) | 0];
   for (const p of particles) {
     const dx = p.x - cx, dy = riverY(p) - cy;
     const d2 = dx * dx + dy * dy;
@@ -293,6 +299,8 @@ addEventListener("pointerdown", (e) => {
     p.sx += (dx / d) * f * 22 * DPR;
     p.sy += (dy / d) * f * 22 * DPR;
     p.zv += (p.z >= 0.5 ? 1 : -1) * f * 0.07;
+    p.tint = color;
+    p.tintT = 1;
   }
 });
 
@@ -345,7 +353,17 @@ function draw(animate) {
       if (p.y < -40 * DPR) p.y = H + 20 * DPR;
       if (p.y > H + 40 * DPR) p.y = -20 * DPR;
     }
-    ctx.fillStyle = `rgba(${BLUE}, ${Math.min(alphaOf(p) + pulse * 0.3, 1)})`;
+    let rgb = BLUE;
+    if (p.tintT > 0.02) {
+      if (animate) p.tintT *= 0.985;
+      const t = p.tintT;
+      rgb = [
+        (BLUE[0] + (p.tint[0] - BLUE[0]) * t) | 0,
+        (BLUE[1] + (p.tint[1] - BLUE[1]) * t) | 0,
+        (BLUE[2] + (p.tint[2] - BLUE[2]) * t) | 0,
+      ];
+    }
+    ctx.fillStyle = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${Math.min(alphaOf(p) + pulse * 0.3, 1)})`;
     const s = sizeOf(p);
     ctx.fillRect(Math.round(p.x), Math.round(y), s, s);
   }

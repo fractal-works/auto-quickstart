@@ -120,17 +120,25 @@
   /* Inline occurrences of the standalone word "auto" render in the pixel
      wordmark face, like the web app's AutoWordmarkText. */
   .inline-wordmark { font-family: var(--font-pixel); font-size: 1.05em; }
-  h1 {
-    margin: clamp(28px, 5vh, 48px) 0 20px; font-size: clamp(40px, 7.5vw, 76px); line-height: 1.05;
-    letter-spacing: -0.02em; font-weight: 600; color: var(--text);
+  .hero-panel {
+    margin-top: clamp(28px, 5vh, 48px);
+    padding: clamp(28px, 4vw, 44px) clamp(20px, 5vw, 56px);
+    background: rgba(38, 35, 35, 0.05);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-card);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
     opacity: 0; animation: rise 1s 0.4s var(--ease-out-strong) forwards;
+  }
+  h1 {
+    margin: 0 0 18px; font-size: clamp(40px, 7.5vw, 76px); line-height: 1.05;
+    letter-spacing: -0.02em; font-weight: 600; color: var(--text);
   }
   .lede {
     max-width: 560px; margin: 0 auto; color: var(--text-muted); font-size: 18px;
-    opacity: 0; animation: rise 1s 0.55s var(--ease-out-strong) forwards;
   }
   .cards {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(196px, 1fr));
     gap: 14px; margin-top: clamp(36px, 7vh, 80px); text-align: left;
   }
   .card {
@@ -143,14 +151,19 @@
   .card:hover { border-color: var(--info-border); }
   .card h2 {
     display: flex; align-items: center; gap: 8px;
-    font: 600 15px/1.3 var(--font-sans); color: var(--text); margin-bottom: 4px;
+    font: 600 14.5px/1.3 var(--font-sans); color: var(--text); margin-bottom: 4px;
+    white-space: nowrap;
+  }
+  .card .avatar {
+    width: 26px; height: 26px; flex: none;
+    border-radius: 6px; border: 1px solid var(--hairline);
+    background: var(--bg-card);
   }
   .card .handle {
     font: 500 11px/1 var(--font-mono); color: var(--text-subtle);
     display: block; margin-bottom: 10px;
   }
   .card p { font: 400 13.5px/1.55 var(--font-sans); color: var(--text-muted); }
-  .card .dot { width: 8px; height: 8px; border-radius: 99px; flex: none; }
 
   footer {
     position: relative; z-index: 1; text-align: center; padding: 0 24px 40px;
@@ -189,17 +202,19 @@
     <svg viewBox="4.75 11.5 44.5 31" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true"><path d="M7.59195 13.5C7.12791 13.5063 6.75454 13.8839 6.75666 14.348V39.6605C6.76299 40.1182 7.13213 40.4895 7.59195 40.4937H46.409H46.4069C46.8709 40.4958 47.2485 40.1225 47.2548 39.6605V14.348C47.2548 14.1223 47.1662 13.9071 47.008 13.7468C46.8477 13.5886 46.6326 13.5 46.4069 13.5L7.59195 13.5ZM20.2523 15.1812H21.9398V16.8687H23.6273V15.1812H27.0023V16.8687H28.6898V15.1812H33.7523V16.8687H35.4398V15.1812H45.5603V38.8125H32.0648V37.125H30.3773V38.8125H25.3148V37.125H23.6273V38.8125H21.9398V37.125H20.2523V38.8125H18.5648V37.125H20.2523V35.4375H18.5648V33.75H20.2523V32.0625H18.5648V30.375H20.2523V28.6875H18.5648V27H20.2523V25.3125H18.5648V23.625H20.2523V21.9375H18.5648V20.25H20.2523V18.5625H18.5648V16.8686H20.2523V15.1812Z" fill="#0D8CF3"/><path d="M20.25 16.875H21.9375V18.5625H20.25V16.875ZM20.25 20.25H21.9375V21.9375H20.25V20.25ZM20.25 23.625H21.9375V25.3125H20.25V23.625ZM20.25 27H21.9375V28.6875H20.25V27ZM20.25 30.375H21.9375V32.0625H20.25V30.375ZM20.25 33.75H21.9375V35.4375H20.25V33.75ZM21.9375 21.9375H23.625V23.625H21.9375V21.9375ZM21.9375 28.6875H23.625V30.375H21.9375V28.6875ZM21.9375 35.4375H23.625V37.125H21.9375V35.4375ZM21.9375 18.5625H23.625V20.25H21.9375V18.5625ZM21.9375 25.3125H23.625V27H21.9375V25.3125ZM21.9375 32.0625H23.625V33.75H21.9375V32.0625ZM23.625 16.875H25.3125V18.5625H23.625V16.875ZM23.625 23.625H25.3125V25.3125H23.625V23.625ZM23.625 30.375H25.3125V32.0625H23.625V30.375ZM23.625 20.25H25.3125V21.9375H23.625V20.25ZM23.625 27H25.3125V28.6875H23.625V27ZM23.625 33.75H25.3125V35.4375H23.625V33.75ZM27 18.5625H28.6875V20.25H27V18.5625ZM27 21.9375H28.6875V23.625H27V21.9375ZM27 25.3125H28.6875V27H27V25.3125ZM27 28.6875H28.6875V30.375H27V28.6875ZM27 32.0625H28.6875V33.75H27V32.0625ZM27 35.4375H28.6875V37.125H27V35.4375ZM30.375 16.875H32.0625V18.5625H30.375V16.875ZM30.375 20.25H32.0625V21.9375H30.375V20.25ZM30.375 23.625H32.0625V25.3125H30.375V23.625ZM30.375 27H32.0625V28.6875H30.375V27ZM30.375 30.375H32.0625V32.0625H30.375V30.375ZM30.375 33.75H32.0625V35.4375H30.375V33.75ZM33.75 18.5625H35.4375V20.25H33.75V18.5625ZM33.75 21.9375H35.4375V23.625H33.75V21.9375ZM33.75 25.3125H35.4375V27H33.75V25.3125ZM33.75 28.6875H35.4375V30.375H33.75V28.6875ZM33.75 32.0625H35.4375V33.75H33.75V32.0625ZM33.75 35.4375H35.4375V37.125H33.75V35.4375Z" fill="#0D8CF3"/></svg>
     <span class="wordmark">auto</span>
   </div>
-  <h1>Welcome to your software factory.</h1>
-  <p class="lede">
-    Your agents are right in your codebase. Manage and improve them just like
-    the rest of your application. Focus on the product and the pipeline
-    and let <span class="inline-wordmark">auto</span> handle the plumbing.
-  </p>
+  <div class="hero-panel">
+    <h1>Welcome to your software factory.</h1>
+    <p class="lede">
+      Your agents are right in your codebase. Manage and improve them just like
+      the rest of your application. Focus on the product and the pipeline
+      and let <span class="inline-wordmark">auto</span> handle the plumbing.
+    </p>
+  </div>
   <div class="cards">
-    <div class="card"><h2><span class="dot" style="background:var(--ds-blue-700)"></span>Onboarding</h2><span class="handle">@onboarding</span><p>Walks you through the factory: agents, triggers, environments, and how this repo wires them together.</p></div>
-    <div class="card"><h2><span class="dot" style="background:var(--warning)"></span>PR review</h2><span class="handle">@pr-review</span><p>Every pull request gets a full review pass before you merge.</p></div>
-    <div class="card"><h2><span class="dot" style="background:var(--accent-purple)"></span>Handoff</h2><span class="handle">@handoff</span><p>Mention it on any PR or issue — or use the bar above — and it takes the work to done.</p></div>
-    <div class="card"><h2><span class="dot" style="background:var(--success)"></span>Self-improvement</h2><span class="handle">@self-improvement</span><p>Sweeps the fleet's own sessions and PR feedback, and proposes improvements to evolve the factory itself.</p></div>
+    <div class="card"><h2><img class="avatar" src="./avatars/default.png" alt="" />Onboarding</h2><span class="handle">@onboarding</span><p>Walks you through the factory: agents, triggers, environments, and how this repo wires them together.</p></div>
+    <div class="card"><h2><img class="avatar" src="./avatars/pr-reviewer.png" alt="" />PR review</h2><span class="handle">@pr-review</span><p>Every pull request gets a full review pass before you merge.</p></div>
+    <div class="card"><h2><img class="avatar" src="./avatars/handoff.png" alt="" />Handoff</h2><span class="handle">@handoff</span><p>Mention it on any PR or issue — or use the bar above — and it takes the work to done.</p></div>
+    <div class="card"><h2><img class="avatar" src="./avatars/self-improvement.png" alt="" />Self-improvement</h2><span class="handle">@self-improvement</span><p>Sweeps the fleet's own sessions and PR feedback, and proposes improvements to evolve the factory itself.</p></div>
   </div>
 </main>
 

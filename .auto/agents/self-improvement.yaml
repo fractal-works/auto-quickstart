@@ -1,0 +1,4 @@
+name: self-improvement
+imports:
+  # Swap to agents/self-improvement-slack.yaml after connecting Slack.
+  - "@auto/self-improvement@latest/agents/self-improvement.yaml"

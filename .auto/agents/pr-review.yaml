@@ -1,0 +1,4 @@
+name: pr-review
+imports:
+  # Swap to fragments/pr-review-slack.yaml after connecting Slack.
+  - "@auto/pr-review@latest/fragments/pr-review.yaml"

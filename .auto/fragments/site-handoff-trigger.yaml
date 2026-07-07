@@ -1,0 +1,26 @@
+# The published site's request bar. Not imported by default: the onboarding
+# agent enables it — it creates the `site-request-password` secret, reserves
+# the `site-requests` endpoint (the reservation returns the ingest URL that
+# goes into site/config.js), and adds this file to handoff.yaml's imports.
+# The apply binds this trigger to the reservation by endpoint name + auth.
+#
+# The site posts `{ "event": "site.request", "request": ..., "page": ... }`
+# with the passphrase as a bearer token; it arrives as `webhook.site.request`.
+triggers:
+  - event: webhook.site.request
+    endpoint: site-requests
+    auth:
+      kind: bearer_token
+      secretRef: site-request-password
+    message: |
+      A visitor to this project's published site asked for something new:
+
+      "{{ request }}"
+
+      (submitted from {{ page }})
+
+      Treat this as a feature request for the site in this repo. Plan the
+      change, implement it on a branch, and open a PR — the publish workflow
+      deploys it when the PR merges.
+    routing:
+      kind: spawn

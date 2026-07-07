@@ -1,0 +1,74 @@
+name: Publish site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - ".auto/hosting-slug"
+      - "scripts/herenow-publish.sh"
+      - ".github/workflows/publish.yml"
+
+concurrency:
+  group: publish-site
+  cancel-in-progress: false
+
+permissions:
+  contents: write # commit comment with the live URL
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish site/ to here.now
+        id: publish
+        env:
+          # Unset (default): anonymous mode — fresh 24h URL per deploy.
+          # Set: keyed mode — permanent site, stable slug from .auto/hosting-slug.
+          HERENOW_API_KEY: ${{ secrets.HERENOW_API_KEY }}
+        run: |
+          set -euo pipefail
+          args=(site --client github-actions)
+          if [[ -n "${HERENOW_API_KEY:-}" && -f .auto/hosting-slug ]]; then
+            args+=(--slug "$(tr -d '[:space:]' < .auto/hosting-slug)")
+          fi
+          # Anonymous publishes share runner egress IPs (60/hr per IP):
+          # absorb a 429 with backoff instead of failing the merge.
+          for attempt in 1 2 3; do
+            if bash scripts/herenow-publish.sh "${args[@]}" 2> publish.log; then
+              break
+            elif grep -q "429" publish.log && [[ "$attempt" -lt 3 ]]; then
+              echo "rate limited; retrying in $((attempt * 60))s" >&2
+              sleep $((attempt * 60))
+            else
+              cat publish.log >&2
+              exit 1
+            fi
+          done
+          # The script's stderr contract: publish_result.<key>=<value> lines.
+          while IFS='=' read -r key value; do
+            case "$key" in
+              publish_result.site_url) echo "site_url=$value" >> "$GITHUB_OUTPUT" ;;
+              publish_result.claim_url) echo "claim_url=$value" >> "$GITHUB_OUTPUT" ;;
+              publish_result.auth_mode) echo "auth_mode=$value" >> "$GITHUB_OUTPUT" ;;
+            esac
+          done < publish.log
+
+      - name: Comment the live URL on the commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SITE_URL: ${{ steps.publish.outputs.site_url }}
+          CLAIM_URL: ${{ steps.publish.outputs.claim_url }}
+          AUTH_MODE: ${{ steps.publish.outputs.auth_mode }}
+        run: |
+          set -euo pipefail
+          body="🌐 Published: ${SITE_URL}"
+          if [[ "$AUTH_MODE" != "authenticated" ]]; then
+            body+=$'\n\n'"Anonymous publish — this URL expires in 24 hours."
+            if [[ -n "${CLAIM_URL:-}" ]]; then
+              body+=$'\n'"Claim to keep it: ${CLAIM_URL}"
+            fi
+          fi
+          gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments" -f body="$body"

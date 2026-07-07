@@ -1,0 +1,32 @@
+name: Checks
+
+# Small on purpose, but real: gives the PR reviewer and handoff agents a
+# check_run signal to react to ("All checks" style), and catches the two
+# files agents edit most.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate site files
+        run: |
+          set -euo pipefail
+          test -f site/index.html
+          node --check site/config.js
+          node -e '
+            const html = require("fs").readFileSync("site/index.html", "utf8");
+            for (const needle of ["id=\"gate-form\"", "window.AUTO", "config.js"]) {
+              if (!html.includes(needle)) {
+                console.error("site/index.html missing: " + needle);
+                process.exit(1);
+              }
+            }
+          '

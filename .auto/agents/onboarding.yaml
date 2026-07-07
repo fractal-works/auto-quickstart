@@ -1,0 +1,6 @@
+name: onboarding
+# The quickstart walkthrough lives in @auto/onboarding-quickstart, appended
+# onto the standard onboarding agent (base import first).
+imports:
+  - "@auto/onboarding@latest/agents/onboarding.yaml"
+  - "@auto/onboarding-quickstart@latest/fragments/onboarding-quickstart.yaml"

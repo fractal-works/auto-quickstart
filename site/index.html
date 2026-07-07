@@ -264,9 +264,9 @@ function spawn(x) {
 
 /* Size, speed, and opacity all derive from live depth: z² on size makes the
    near layer read much closer than the far one. */
-function sizeOf(p) { return (2.2 + p.z * p.z * 10) * DPR; }
-function speedOf(p) { return (0.6 + p.z * 3.0) * p.jitter * DPR; }
-function alphaOf(p) { return 0.3 + p.z * 0.7; }
+function sizeOf(p) { return (3.2 + p.z * p.z * 13) * DPR; }
+function speedOf(p) { return (1.0 + p.z * 3.6) * p.jitter * DPR; }
+function alphaOf(p) { return 0.4 + p.z * 0.6; }
 
 function resize() {
   W = canvas.width = innerWidth * DPR;

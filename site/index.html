@@ -248,18 +248,24 @@ function spawn(x) {
   return {
     x,
     y: Math.random() * H,
+    z0: z, /* home depth, relaxed back to after hover/click influence */
     z,
-    vx: (0.7 + z * 2.4) * DPR,
+    zv: 0, /* depth velocity from clicks */
+    jitter: 0.85 + Math.random() * 0.3,
     vy: 0,
     mul: 1, /* smoothed hover speed multiplier — the inertia */
     sx: 0, sy: 0, /* scatter velocity from clicks */
     amp: (3 + Math.random() * 9) * DPR,
     phase: Math.random() * Math.PI * 2,
     wave: 0.0015 + Math.random() * 0.0035,
-    size: (2.4 + z * 5.6) * DPR,
-    alpha: 0.35 + z * 0.65,
   };
 }
+
+/* Size, speed, and opacity all derive from live depth: z² on size makes the
+   near layer read much closer than the far one. */
+function sizeOf(p) { return (2.2 + p.z * p.z * 10) * DPR; }
+function speedOf(p) { return (0.6 + p.z * 3.0) * p.jitter * DPR; }
+function alphaOf(p) { return 0.3 + p.z * 0.7; }
 
 function resize() {
   W = canvas.width = innerWidth * DPR;
@@ -274,6 +280,8 @@ addEventListener("resize", resize);
 addEventListener("pointermove", (e) => { mouse.x = e.clientX * DPR; mouse.y = e.clientY * DPR; });
 addEventListener("pointerdown", (e) => {
   if (REDUCED) return;
+  /* Clicks hit the exact spot: a harder radial shove, and a depth kick —
+     near pixels jump closer (bigger), far ones drop further away (smaller). */
   const cx = e.clientX * DPR, cy = e.clientY * DPR;
   const R = 220 * DPR;
   for (const p of particles) {
@@ -282,8 +290,9 @@ addEventListener("pointerdown", (e) => {
     if (d2 > R * R) continue;
     const d = Math.sqrt(d2) || 1;
     const f = (1 - d / R) * (0.5 + p.z * 0.5);
-    p.sx += (dx / d) * f * 14 * DPR;
-    p.sy += (dy / d) * f * 14 * DPR;
+    p.sx += (dx / d) * f * 22 * DPR;
+    p.sy += (dy / d) * f * 22 * DPR;
+    p.zv += (p.z >= 0.5 ? 1 : -1) * f * 0.07;
   }
 });
 
@@ -305,21 +314,30 @@ function draw(animate) {
   for (const p of particles) {
     const y = riverY(p);
     if (animate) {
-      /* Hover: converge toward the pointer, gradually and with inertia. */
+      /* Hover: converge toward the pointer, gradually and with inertia. The
+         center of gravity sits left of the pointer so rightward-flowing
+         pixels bend in and arrive at the actual hover point. */
       let targetMul = 1;
-      const dx = p.x - mouse.x, dy = y - mouse.y;
+      const gx = mouse.x - 110 * DPR;
+      const dx = p.x - gx, dy = y - mouse.y;
       const d2 = dx * dx + dy * dy;
       if (d2 < R * R) {
         const d = Math.sqrt(d2) || 1;
         const f = (1 - d / R) * (0.4 + p.z * 0.6);
         /* Upstream pixels hurry toward the pointer, downstream ones linger —
            slowed at most ~55%, so nothing ever flows backward. */
-        targetMul = p.x < mouse.x ? 1 + 0.9 * f : 1 - 0.55 * f;
+        targetMul = p.x < gx ? 1 + 0.9 * f : 1 - 0.55 * f;
         p.vy += (-dy / d) * f * 0.07 * DPR;
+        /* Depth converges toward the hover plane: near pixels recede a
+           little, far ones come forward. */
+        p.z += (0.55 - p.z) * f * 0.03;
       }
       p.mul += (targetMul - p.mul) * 0.04;
       p.vy = Math.max(-maxPull, Math.min(maxPull, p.vy * 0.95));
-      p.x += p.vx * p.mul * (1 + pulse * 2) + p.sx;
+      p.z += p.zv + (p.z0 - p.z) * 0.01;
+      p.zv *= 0.92;
+      p.z = Math.max(0.02, Math.min(1, p.z));
+      p.x += speedOf(p) * p.mul * (1 + pulse * 2) + p.sx;
       p.y += p.vy + p.sy;
       p.sx *= 0.9;
       p.sy *= 0.9;
@@ -327,8 +345,9 @@ function draw(animate) {
       if (p.y < -40 * DPR) p.y = H + 20 * DPR;
       if (p.y > H + 40 * DPR) p.y = -20 * DPR;
     }
-    ctx.fillStyle = `rgba(${BLUE}, ${Math.min(p.alpha + pulse * 0.3, 1)})`;
-    ctx.fillRect(Math.round(p.x), Math.round(y), p.size, p.size);
+    ctx.fillStyle = `rgba(${BLUE}, ${Math.min(alphaOf(p) + pulse * 0.3, 1)})`;
+    const s = sizeOf(p);
+    ctx.fillRect(Math.round(p.x), Math.round(y), s, s);
   }
 }
 

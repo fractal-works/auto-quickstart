@@ -258,9 +258,6 @@ function spawn(x) {
     vy: 0,
     mul: 1, /* smoothed hover speed multiplier — the inertia */
     sx: 0, sy: 0, /* scatter velocity from clicks */
-    amp: (3 + Math.random() * 9) * DPR,
-    phase: Math.random() * Math.PI * 2,
-    wave: 0.0015 + Math.random() * 0.0035,
     tint: BLUE, /* status color from the last click, fading back to blue */
     tintT: 0,
   };
@@ -304,8 +301,9 @@ addEventListener("pointerdown", (e) => {
   }
 });
 
+/* Flow is straight left-to-right; y only moves under hover pull or scatter. */
 function riverY(p) {
-  return p.y + Math.sin(p.x * p.wave + p.phase) * p.amp;
+  return p.y;
 }
 
 function draw(animate) {
@@ -317,7 +315,7 @@ function draw(animate) {
   } else {
     ctx.clearRect(0, 0, W, H);
   }
-  const R = 280 * DPR;
+  const R = 210 * DPR;
   const maxPull = 1.5 * DPR;
   for (const p of particles) {
     const y = riverY(p);
